@@ -39,6 +39,8 @@ fun GesturesSettingPanel(
         enableHorizontalPagination = viewModel.enableHorizontalPagination,
         updateVolumeKeyNavigation = viewModel::updateVolumeKeyNavigation,
         enableVolumeKeyNavigation = viewModel.enableVolumeKeyNavigation,
+        updateKeyboardNavigation = viewModel::updateKeyboardNavigation,
+        enableKeyboardNavigation = viewModel.enableKeyboardNavigation,
         backAction = viewModel.backAction,
         bottomSwipe = viewModel.readerBottomSwipe,
         enablePagingTapGesture = viewModel.enablePagingTapGesture,
@@ -64,6 +66,8 @@ private fun GesturesSettingsPanelView(
     enableHorizontalPagination: Boolean,
     updateVolumeKeyNavigation: (enabled: Boolean) -> Unit,
     enableVolumeKeyNavigation: Boolean,
+    updateKeyboardNavigation: (enabled: Boolean) -> Unit,
+    enableKeyboardNavigation: Boolean,
     backAction: BackAction,
     bottomSwipe: ArticleVerticalSwipe,
     enablePagingTapGesture: Boolean,
@@ -137,6 +141,15 @@ private fun GesturesSettingsPanelView(
                         subtitle = stringResource(R.string.settings_gestures_reader_volume_key_navigation_subtitle)
                     )
                 }
+
+                RowItem {
+                    TextSwitch(
+                        onCheckedChange = updateKeyboardNavigation,
+                        checked = enableKeyboardNavigation,
+                        title = stringResource(R.string.settings_gestures_reader_keyboard_navigation_title),
+                        subtitle = stringResource(R.string.settings_gestures_reader_keyboard_navigation_subtitle)
+                    )
+                }
             }
         }
 
@@ -203,10 +216,12 @@ fun GesturesSettingsPanelPreview() {
             enablePagingTapGesture = true,
             enableHorizontalPagination = true,
             enableVolumeKeyNavigation = false,
+            updateVolumeKeyNavigation = {},
+            enableKeyboardNavigation = false,
+            updateKeyboardNavigation = {},
             listSwipeBottom = ArticleListVerticalSwipe.NEXT_FEED,
             improveTalkback = true,
             updateImproveTalkback = {},
-            updateVolumeKeyNavigation = {}
         )
     }
 }

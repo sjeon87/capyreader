@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.paging.compose.LazyPagingItems
-import com.capyreader.app.VolumeKeyNavigationBridge
+import com.capyreader.app.ArticleNavigationBridge
 import com.capyreader.app.common.AudioEnclosure
 import com.capyreader.app.common.Media
 import com.capyreader.app.preferences.AppPreferences
@@ -69,10 +69,12 @@ fun ArticleView(
     isFullscreen: Boolean = false,
     onToggleFullscreen: () -> Unit = {},
     appPreferences: AppPreferences = koinInject(),
-    volumeKeyNavigationBridge: VolumeKeyNavigationBridge = koinInject()
+    navigationBridge: ArticleNavigationBridge = koinInject()
 ) {
     val enableHorizontalPager by appPreferences.readerOptions.enableHorizontaPagination.collectChangesWithDefault()
     val enableVolumeKeyNavigation by appPreferences.readerOptions.enableVolumeKeyNavigation.collectChangesWithDefault()
+    val enableKeyboardNavigation by appPreferences.readerOptions.enableKeyboardNavigation.collectChangesWithDefault()
+    val hardwareNavigationEnabled = enableVolumeKeyNavigation || enableKeyboardNavigation
     val fullContent = LocalFullContent.current
     val openLink = articleOpenLink(article)
 
@@ -121,19 +123,20 @@ fun ArticleView(
 
     val volumeKeyOwner = remember { Any() }
 
-    DisposableEffect(volumeKeyOwner, enableVolumeKeyNavigation) {
-        if (enableVolumeKeyNavigation) {
-            volumeKeyNavigationBridge.register(
+    DisposableEffect(volumeKeyOwner, hardwareNavigationEnabled) {
+        if (hardwareNavigationEnabled) {
+            navigationBridge.register(
                 volumeKeyOwner,
-                VolumeKeyNavigationBridge.Callbacks(
+                ArticleNavigationBridge.Callbacks(
                     onSelectPreviousArticle = { currentSelectPrevious.value() },
                     onSelectNextArticle = { currentSelectNext.value() },
+                    handlesVolumeKeys = enableVolumeKeyNavigation,
                 )
             )
         }
 
         onDispose {
-            volumeKeyNavigationBridge.unregister(volumeKeyOwner)
+            navigationBridge.unregister(volumeKeyOwner)
         }
     }
 

@@ -17,7 +17,7 @@ import org.koin.android.ext.android.inject
 class MainActivity : BaseActivity() {
     val appPreferences by inject<AppPreferences>()
 
-    private val volumeKeyNavigationBridge by inject<VolumeKeyNavigationBridge>()
+    private val navigationBridge by inject<ArticleNavigationBridge>()
 
     private var pendingArticleID by mutableStateOf<String?>(null)
 
@@ -55,6 +55,10 @@ class MainActivity : BaseActivity() {
             return true
         }
 
+        if (handleKeyboardNavigation(keyCode, event)) {
+            return true
+        }
+
         return super.onKeyUp(keyCode, event)
     }
 
@@ -78,10 +82,33 @@ class MainActivity : BaseActivity() {
 
     private fun volumeKeyCallback(keyCode: Int): (() -> Unit)? {
         return when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> volumeKeyNavigationBridge.onSelectPreviousArticle
-            KeyEvent.KEYCODE_VOLUME_DOWN -> volumeKeyNavigationBridge.onSelectNextArticle
+            KeyEvent.KEYCODE_VOLUME_UP -> navigationBridge.onVolumeUp
+            KeyEvent.KEYCODE_VOLUME_DOWN -> navigationBridge.onVolumeDown
             else -> null
         }
+    }
+
+    /**
+     * Route J/K presses from bluetooth keyboards to article navigation when an
+     * article surface (list or reader) has registered callbacks while keyboard
+     * navigation is enabled. Unlike the system keys handled in onKeyDown, J/K
+     * carry no default OS behavior, so they are consumed on key-up where
+     * Compose focus handling is settled.
+     */
+    private fun handleKeyboardNavigation(keyCode: Int, event: KeyEvent?): Boolean {
+        if (event?.isCtrlPressed == true || event?.isAltPressed == true || event?.isMetaPressed == true) {
+            return false
+        }
+
+        val callback = when (keyCode) {
+            KeyEvent.KEYCODE_J -> navigationBridge.onSelectNextArticle
+            KeyEvent.KEYCODE_K -> navigationBridge.onSelectPreviousArticle
+            else -> null
+        } ?: return false
+
+        callback.invoke()
+
+        return true
     }
 
     private fun startDestination(): Route {

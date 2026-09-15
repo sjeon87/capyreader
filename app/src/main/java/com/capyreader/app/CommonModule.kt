@@ -39,7 +39,7 @@ internal val common = module {
     }
     single { AppPreferences(get()) }
     single { RefreshScheduler(get(), get()) }
-    single { VolumeKeyNavigationBridge() }
+    single { ArticleNavigationBridge() }
 }
 
 private fun Locale.toAcceptLanguageTag(): String {
