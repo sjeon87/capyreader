@@ -342,6 +342,10 @@ fun ArticleScreen(
             }
         }
 
+        val enableKeyboardNavigation by appPreferences.readerOptions.enableKeyboardNavigation.collectChangesWithDefault()
+
+        // J/K list navigation is registered below, after selectArticle is declared.
+
         fun refreshAll() {
             viewModel.refreshAll()
         }
@@ -411,7 +415,7 @@ fun ArticleScreen(
 
         val linkOpener = LocalLinkOpener.current
 
-        fun selectArticle(articleID: String) {
+        fun selectListArticle(articleID: String) {
             setArticle(articleID) { nextArticle ->
                 if (search.isActive) {
                     focusManager.clearFocus()
@@ -476,8 +480,26 @@ fun ArticleScreen(
         LaunchedEffect(pendingArticleID) {
             val id = pendingArticleID ?: return@LaunchedEffect
             onPendingArticleSelected()
-            selectArticle(id)
+            selectListArticle(id)
         }
+
+        // J/K opens articles from the list, but only while no reader, search,
+        // media viewer, dialog, or drawer could consume the keystroke instead.
+        ArticleListKeyboardNavigation(
+            enabled = enableKeyboardNavigation &&
+                    article == null &&
+                    !search.isActive &&
+                    media == null &&
+                    !isMarkAllReadDialogOpen &&
+                    !isUpdatePasswordDialogOpen &&
+                    !viewModel.showUnauthorizedMessage &&
+                    labelsActions.selectedArticleID == null &&
+                    drawerState.isClosed,
+            articles = articles,
+            currentArticleId = article?.id,
+            listState = listState,
+            onSelectArticle = ::selectListArticle,
+        )
 
         ArticleScaffold(
             drawerState = drawerState,
@@ -623,7 +645,7 @@ fun ArticleScreen(
                                                 onMarkAllRead(range)
                                             },
                                             onSelect = { articleID ->
-                                                selectArticle(articleID)
+                                                selectListArticle(articleID)
                                             },
                                         )
                                     }
