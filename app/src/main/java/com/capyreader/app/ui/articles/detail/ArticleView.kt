@@ -79,7 +79,10 @@ fun ArticleView(
     val enableHorizontalPager by appPreferences.readerOptions.enableHorizontaPagination.collectChangesWithDefault()
     val enableVolumeKeyNavigation by appPreferences.readerOptions.enableVolumeKeyNavigation.collectChangesWithDefault()
     val fullContent = LocalFullContent.current
-    val openLink = articleOpenLink(article)
+    val linkOpener = LocalLinkOpener.current
+    val openLink: () -> Unit = {
+        article.url?.toString()?.let { linkOpener.open(it.toUri()) }
+    }
 
     val onToggleFullContent = {
         if (article.fullContent == Article.FullContentState.LOADED) {
@@ -354,21 +357,6 @@ fun swipeIcon(
         OPEN_ARTICLE_IN_BROWSER -> Icons.AutoMirrored.Rounded.OpenInNew
         else -> relatedArticleIcon
     }
-}
-
-@Composable
-fun articleOpenLink(
-    article: Article,
-): () -> Unit {
-    val linkOpener = LocalLinkOpener.current
-
-    fun open() {
-        val link = article.url?.toString() ?: return
-
-        linkOpener.open(link.toUri())
-    }
-
-    return ::open
 }
 
 @Composable
