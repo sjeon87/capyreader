@@ -28,6 +28,11 @@ fun ArticleListKeyboardNavigation(
     currentArticleId: String?,
     listState: LazyListState,
     onSelectArticle: (articleID: String) -> Unit,
+    onToggleRead: ((article: Article) -> Unit)? = null,
+    onToggleStar: ((article: Article) -> Unit)? = null,
+    onOpenInBrowser: ((url: String) -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
+    onFocusSearch: (() -> Unit)? = null,
     navigationBridge: ArticleNavigationBridge = koinInject(),
 ) {
     fun select(direction: Int) {
@@ -51,7 +56,44 @@ fun ArticleListKeyboardNavigation(
         }
     }
 
+    fun activeArticle(): Article? {
+        if (articles.itemCount == 0) return null
+        val snapshot = articles.itemSnapshotList
+        if (currentArticleId != null) {
+            val found = snapshot.firstOrNull { it?.id == currentArticleId }
+            if (found != null) return found
+        }
+        val targetIndex = initialArticleIndex(articleIds(articles), listState.firstVisibleItemIndex)
+        return if (targetIndex != -1) snapshot.getOrNull(targetIndex) else null
+    }
+
+    fun openArticle() {
+        val target = activeArticle() ?: return
+        onSelectArticle(target.id)
+    }
+
+    fun toggleRead() {
+        val target = activeArticle() ?: return
+        onToggleRead?.invoke(target)
+    }
+
+    fun toggleStar() {
+        val target = activeArticle() ?: return
+        onToggleStar?.invoke(target)
+    }
+
+    fun openInBrowser() {
+        val target = activeArticle() ?: return
+        target.url?.let { onOpenInBrowser?.invoke(it.toString()) }
+    }
+
     val latestSelect = rememberUpdatedState(::select)
+    val latestOpenArticle = rememberUpdatedState(::openArticle)
+    val latestToggleRead = rememberUpdatedState(::toggleRead)
+    val latestToggleStar = rememberUpdatedState(::toggleStar)
+    val latestOpenInBrowser = rememberUpdatedState(::openInBrowser)
+    val latestRefresh = rememberUpdatedState(onRefresh)
+    val latestFocusSearch = rememberUpdatedState(onFocusSearch)
     val owner = remember { Any() }
 
     DisposableEffect(owner, enabled) {
@@ -61,6 +103,12 @@ fun ArticleListKeyboardNavigation(
                 ArticleNavigationBridge.Callbacks(
                     onSelectPreviousArticle = { latestSelect.value(-1) },
                     onSelectNextArticle = { latestSelect.value(1) },
+                    onOpenArticle = { latestOpenArticle.value() },
+                    onToggleRead = { latestToggleRead.value() },
+                    onToggleStar = { latestToggleStar.value() },
+                    onOpenInBrowser = { latestOpenInBrowser.value() },
+                    onRefresh = { latestRefresh.value?.invoke() },
+                    onFocusSearch = { latestFocusSearch.value?.invoke() },
                     handlesVolumeKeys = false,
                 ),
             )

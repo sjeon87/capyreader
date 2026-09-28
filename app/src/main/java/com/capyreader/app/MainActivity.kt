@@ -88,19 +88,43 @@ class MainActivity : BaseActivity() {
     }
 
     /**
-     * Route J/K presses from bluetooth keyboards to article navigation when an
-     * article surface (list or reader) has registered callbacks. Unlike the
-     * system keys handled in onKeyDown, J/K carry no default OS behavior, so
-     * they are consumed on key-up where Compose focus handling is settled.
+     * Route hardware keyboard shortcuts to article navigation and actions when
+     * an article surface has registered callbacks. Key events are consumed on
+     * key-up where Compose focus handling is settled.
      */
     private fun handleKeyboardNavigation(keyCode: Int, event: KeyEvent?): Boolean {
         if (event?.isCtrlPressed == true || event?.isAltPressed == true || event?.isMetaPressed == true) {
             return false
         }
 
+        if (keyCode == KeyEvent.KEYCODE_H || event?.unicodeChar == '?'.code) {
+            val callback = navigationBridge.onShowHelp ?: return false
+            callback.invoke()
+            return true
+        }
+
+        if (event?.isShiftPressed == true && keyCode == KeyEvent.KEYCODE_SPACE) {
+            val callback = navigationBridge.onPageUp ?: return false
+
+            callback.invoke()
+            return true
+        }
+
         val callback = when (keyCode) {
             KeyEvent.KEYCODE_J -> navigationBridge.onSelectNextArticle
             KeyEvent.KEYCODE_K -> navigationBridge.onSelectPreviousArticle
+            KeyEvent.KEYCODE_M -> navigationBridge.onToggleRead
+            KeyEvent.KEYCODE_F -> navigationBridge.onToggleStar
+            KeyEvent.KEYCODE_W -> navigationBridge.onToggleFullContent
+            KeyEvent.KEYCODE_V -> navigationBridge.onOpenInBrowser
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent.KEYCODE_NUMPAD_ENTER,
+            KeyEvent.KEYCODE_DPAD_CENTER,
+            KeyEvent.KEYCODE_O -> navigationBridge.onOpenArticle
+            KeyEvent.KEYCODE_ESCAPE -> navigationBridge.onBack
+            KeyEvent.KEYCODE_SPACE -> navigationBridge.onPageDown
+            KeyEvent.KEYCODE_R -> navigationBridge.onRefresh
+            KeyEvent.KEYCODE_SLASH -> navigationBridge.onFocusSearch
             else -> null
         } ?: return false
 

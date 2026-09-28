@@ -2,8 +2,6 @@ package com.capyreader.app.ui.settings.panels
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,9 +20,20 @@ import com.capyreader.app.ui.theme.CapyTheme
 
 @Composable
 fun KeyboardShortcutsSettingsPanel() {
+    KeyboardShortcutsList(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp),
+    )
+}
+
+@Composable
+fun KeyboardShortcutsList(
+    modifier: Modifier = Modifier,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.verticalScroll(rememberScrollState()),
+        modifier = modifier,
     ) {
         FormSection(title = stringResource(R.string.settings_keybinding_keyboard_title)) {
             Column {
@@ -37,6 +46,61 @@ fun KeyboardShortcutsSettingsPanel() {
                     keys = "K",
                     description = stringResource(R.string.article_vertical_swipe_previous_article),
                     context = stringResource(R.string.settings_keybinding_context_list_reader),
+                )
+                KeybindingRow(
+                    keys = stringResource(R.string.settings_keybinding_enter),
+                    description = stringResource(R.string.settings_keybinding_open_article),
+                    context = stringResource(R.string.settings_keybinding_context_list),
+                )
+                KeybindingRow(
+                    keys = stringResource(R.string.settings_keybinding_esc),
+                    description = stringResource(R.string.settings_keybinding_close_reader),
+                    context = stringResource(R.string.settings_keybinding_context_reader),
+                )
+                KeybindingRow(
+                    keys = stringResource(R.string.settings_keybinding_space),
+                    description = stringResource(R.string.settings_keybinding_scroll_down),
+                    context = stringResource(R.string.settings_keybinding_context_reader),
+                )
+                KeybindingRow(
+                    keys = stringResource(R.string.settings_keybinding_shift_space),
+                    description = stringResource(R.string.settings_keybinding_scroll_up),
+                    context = stringResource(R.string.settings_keybinding_context_reader),
+                )
+                KeybindingRow(
+                    keys = "M",
+                    description = stringResource(R.string.article_list_row_swipe_toggle_read),
+                    context = stringResource(R.string.settings_keybinding_context_list_reader),
+                )
+                KeybindingRow(
+                    keys = "F",
+                    description = stringResource(R.string.article_list_row_swipe_toggle_starred),
+                    context = stringResource(R.string.settings_keybinding_context_list_reader),
+                )
+                KeybindingRow(
+                    keys = "W",
+                    description = stringResource(R.string.article_vertical_swipe_full_content),
+                    context = stringResource(R.string.settings_keybinding_context_reader),
+                )
+                KeybindingRow(
+                    keys = "V",
+                    description = stringResource(R.string.article_vertical_open_article_in_browser),
+                    context = stringResource(R.string.settings_keybinding_context_list_reader),
+                )
+                KeybindingRow(
+                    keys = "R",
+                    description = stringResource(R.string.settings_keybinding_refresh),
+                    context = stringResource(R.string.settings_keybinding_context_list),
+                )
+                KeybindingRow(
+                    keys = stringResource(R.string.settings_keybinding_slash),
+                    description = stringResource(R.string.settings_keybinding_search),
+                    context = stringResource(R.string.settings_keybinding_context_list),
+                )
+                KeybindingRow(
+                    keys = stringResource(R.string.settings_keybinding_help_key),
+                    description = stringResource(R.string.settings_keybinding_help),
+                    context = stringResource(R.string.settings_keybinding_context_global),
                 )
             }
         }
@@ -55,8 +119,6 @@ fun KeyboardShortcutsSettingsPanel() {
                 )
             }
         }
-
-        Spacer(Modifier.height(16.dp))
     }
 }
 

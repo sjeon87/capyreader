@@ -31,10 +31,15 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.compose.foundation.ScrollState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.paging.compose.LazyPagingItems
 import com.capyreader.app.ArticleNavigationBridge
 import com.capyreader.app.common.AudioEnclosure
 import com.capyreader.app.common.Media
+import com.jocmp.capy.common.launchUI
+import kotlin.math.roundToInt
 import com.capyreader.app.preferences.AppPreferences
 import com.capyreader.app.preferences.ArticleVerticalSwipe
 import com.capyreader.app.preferences.ArticleVerticalSwipe.DISABLED
@@ -116,8 +121,51 @@ fun ArticleView(
         }
     }
 
+    val readerScrollState = rememberSaveable(article.id, saver = ScrollState.Saver) {
+        ScrollState(initial = 0)
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    fun pageDown() {
+        coroutineScope.launchUI {
+            if (readerScrollState.maxValue == 0 || readerScrollState.value >= readerScrollState.maxValue) {
+                selectNext()
+            } else {
+                val jump = if (readerScrollState.viewportSize > 0) {
+                    (readerScrollState.viewportSize * 0.85f).roundToInt()
+                } else {
+                    800
+                }
+                readerScrollState.animateScrollTo((readerScrollState.value + jump).coerceAtMost(readerScrollState.maxValue))
+            }
+        }
+    }
+
+    fun pageUp() {
+        coroutineScope.launchUI {
+            if (readerScrollState.value <= 0) {
+                selectPrevious()
+            } else {
+                val jump = if (readerScrollState.viewportSize > 0) {
+                    (readerScrollState.viewportSize * 0.85f).roundToInt()
+                } else {
+                    800
+                }
+                readerScrollState.animateScrollTo((readerScrollState.value - jump).coerceAtLeast(0))
+            }
+        }
+    }
+
     val currentSelectPrevious = rememberUpdatedState { selectPrevious() }
     val currentSelectNext = rememberUpdatedState { selectNext() }
+    val currentToggleRead = rememberUpdatedState(onToggleRead)
+    val currentToggleStar = rememberUpdatedState(onToggleStar)
+    val currentToggleFullContent = rememberUpdatedState(onToggleFullContent)
+    val currentOpenLink = rememberUpdatedState(openLink)
+    val currentBackPressed = rememberUpdatedState(onBackPressed)
+    val currentPageDown = rememberUpdatedState { pageDown() }
+    val currentPageUp = rememberUpdatedState { pageUp() }
 
     val volumeKeyOwner = remember { Any() }
 
@@ -127,6 +175,13 @@ fun ArticleView(
             ArticleNavigationBridge.Callbacks(
                 onSelectPreviousArticle = { currentSelectPrevious.value() },
                 onSelectNextArticle = { currentSelectNext.value() },
+                onToggleRead = { currentToggleRead.value() },
+                onToggleStar = { currentToggleStar.value() },
+                onToggleFullContent = { currentToggleFullContent.value() },
+                onOpenInBrowser = { currentOpenLink.value() },
+                onBack = { currentBackPressed.value() },
+                onPageDown = { currentPageDown.value() },
+                onPageUp = { currentPageUp.value() },
                 handlesVolumeKeys = enableVolumeKeyNavigation,
             ),
         )
@@ -197,6 +252,7 @@ fun ArticleView(
                                 onPauseAudio = onPauseAudio,
                                 currentAudioUrl = currentAudioUrl,
                                 isAudioPlaying = isAudioPlaying,
+                                scrollState = readerScrollState,
                             )
                         }
                     }
