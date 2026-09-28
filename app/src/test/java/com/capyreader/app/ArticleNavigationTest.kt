@@ -170,4 +170,90 @@ class ArticleNavigationTest {
         assertEquals(-1, initialArticleIndex(listOf(null, null), 0))
         assertEquals(-1, initialArticleIndex(emptyList(), 0))
     }
+
+    @Test
+    fun `bridge routes shortcut actions to registrations`() {
+        val bridge = ArticleNavigationBridge()
+        var readToggled = false
+        var starToggled = false
+        var fullContentToggled = false
+        var browserOpened = false
+        var articleOpened = false
+        var backCalled = false
+        var pageDownCalled = false
+        var pageUpCalled = false
+        var refreshed = false
+        var searchFocused = false
+        var helpShown = false
+
+        bridge.register(
+            Any(),
+            ArticleNavigationBridge.Callbacks(
+                onToggleRead = { readToggled = true },
+                onToggleStar = { starToggled = true },
+                onToggleFullContent = { fullContentToggled = true },
+                onOpenInBrowser = { browserOpened = true },
+                onOpenArticle = { articleOpened = true },
+                onBack = { backCalled = true },
+                onPageDown = { pageDownCalled = true },
+                onPageUp = { pageUpCalled = true },
+                onRefresh = { refreshed = true },
+                onFocusSearch = { searchFocused = true },
+                onShowHelp = { helpShown = true },
+            )
+        )
+
+        bridge.onToggleRead?.invoke()
+        bridge.onToggleStar?.invoke()
+        bridge.onToggleFullContent?.invoke()
+        bridge.onOpenInBrowser?.invoke()
+        bridge.onOpenArticle?.invoke()
+        bridge.onBack?.invoke()
+        bridge.onPageDown?.invoke()
+        bridge.onPageUp?.invoke()
+        bridge.onRefresh?.invoke()
+        bridge.onFocusSearch?.invoke()
+        bridge.onShowHelp?.invoke()
+
+        assertEquals(true, readToggled)
+        assertEquals(true, starToggled)
+        assertEquals(true, fullContentToggled)
+        assertEquals(true, browserOpened)
+        assertEquals(true, articleOpened)
+        assertEquals(true, backCalled)
+        assertEquals(true, pageDownCalled)
+        assertEquals(true, pageUpCalled)
+        assertEquals(true, refreshed)
+        assertEquals(true, searchFocused)
+        assertEquals(true, helpShown)
+    }
+
+    @Test
+    fun `bridge falls back to enclosing registration when latest does not handle callback`() {
+        val bridge = ArticleNavigationBridge()
+        val screenOwner = Any()
+        val readerOwner = Any()
+        var screenHelpCalled = false
+        var readerReadCalled = false
+
+        bridge.register(
+            screenOwner,
+            ArticleNavigationBridge.Callbacks(
+                onShowHelp = { screenHelpCalled = true }
+            )
+        )
+
+        bridge.register(
+            readerOwner,
+            ArticleNavigationBridge.Callbacks(
+                onToggleRead = { readerReadCalled = true }
+            )
+        )
+
+        bridge.onToggleRead?.invoke()
+        bridge.onShowHelp?.invoke()
+
+        assertEquals(true, readerReadCalled)
+        assertEquals(true, screenHelpCalled)
+    }
 }

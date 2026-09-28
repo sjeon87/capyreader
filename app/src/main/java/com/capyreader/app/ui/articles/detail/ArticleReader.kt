@@ -56,6 +56,9 @@ fun ArticleReader(
     onPauseAudio: () -> Unit = {},
     currentAudioUrl: String? = null,
     isAudioPlaying: Boolean = false,
+    scrollState: ScrollState = rememberSaveable(article.id, saver = ScrollState.Saver) {
+        ScrollState(initial = 0)
+    },
 ) {
     val (shareLink, setShareLink) = rememberSaveableShareLink()
     val (shareImageUrl, setImageUrl) = rememberSaveable { mutableStateOf<String?>(null) }
@@ -140,7 +143,7 @@ fun ArticleReader(
             )
         }
     } else {
-        ScrollableWebView(webViewState, article, showImages, pinToolbars)
+        ScrollableWebView(webViewState, article, showImages, pinToolbars, scrollState)
     }
 
     ArticleStyleListener(webView = webViewState.webView)
@@ -167,11 +170,16 @@ fun ArticleReader(
 }
 
 @Composable
-fun ScrollableWebView(webViewState: WebViewState, article: Article, showImages: Boolean, pinToolbars: Boolean) {
-    var maxHeight by remember { mutableFloatStateOf(0f) }
-    val scrollState = rememberSaveable(article.id, saver = ScrollState.Saver) {
+fun ScrollableWebView(
+    webViewState: WebViewState,
+    article: Article,
+    showImages: Boolean,
+    pinToolbars: Boolean,
+    scrollState: ScrollState = rememberSaveable(article.id, saver = ScrollState.Saver) {
         ScrollState(initial = 0)
-    }
+    },
+) {
+    var maxHeight by remember { mutableFloatStateOf(0f) }
 
     var lastScrollYPercent by rememberSaveable(article.id) { mutableFloatStateOf(0f) }
 

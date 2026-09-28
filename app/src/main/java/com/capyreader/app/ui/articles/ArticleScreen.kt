@@ -22,12 +22,14 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -47,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.capyreader.app.ArticleNavigationBridge
 import com.capyreader.app.R
 import com.capyreader.app.common.Media
 import com.capyreader.app.common.Saver
@@ -113,6 +116,7 @@ import org.koin.compose.koinInject
 fun ArticleScreen(
     viewModel: ArticleScreenViewModel = koinViewModel(),
     appPreferences: AppPreferences = koinInject(),
+    navigationBridge: ArticleNavigationBridge = koinInject(),
     pendingArticleID: String? = null,
     onPendingArticleSelected: () -> Unit = {},
     onNavigateToSettings: () -> Unit,
@@ -187,6 +191,7 @@ fun ArticleScreen(
 
     val confirmMarkAllReadEnabled by appPreferences.articleListOptions.confirmMarkAllRead.asState()
     var isMarkAllReadDialogOpen by remember { mutableStateOf(false) }
+    var isShortcutsDialogOpen by rememberSaveable { mutableStateOf(false) }
 
     CompositionLocalProvider(
         LocalFullContent provides fullContent,
@@ -481,14 +486,39 @@ fun ArticleScreen(
             selectListArticle(id)
         }
 
-        // J/K opens articles from the list, but only while no reader, search,
-        // media viewer, dialog, or drawer could consume the keystroke instead.
+        val helpEnabled = !search.isActive &&
+                media == null &&
+                !isMarkAllReadDialogOpen &&
+                !isUpdatePasswordDialogOpen &&
+                !isShortcutsDialogOpen &&
+                !viewModel.showUnauthorizedMessage &&
+                labelsActions.selectedArticleID == null
+        val currentOpenHelp = rememberUpdatedState { isShortcutsDialogOpen = true }
+        val shortcutsOwner = remember { Any() }
+
+        DisposableEffect(shortcutsOwner, helpEnabled) {
+            if (helpEnabled) {
+                navigationBridge.register(
+                    shortcutsOwner,
+                    ArticleNavigationBridge.Callbacks(
+                        onShowHelp = { currentOpenHelp.value() },
+                        handlesVolumeKeys = false,
+                    ),
+                )
+            }
+
+            onDispose {
+                navigationBridge.unregister(shortcutsOwner)
+            }
+        }
+
         ArticleListKeyboardNavigation(
             enabled = article == null &&
                     !search.isActive &&
                     media == null &&
                     !isMarkAllReadDialogOpen &&
                     !isUpdatePasswordDialogOpen &&
+                    !isShortcutsDialogOpen &&
                     !viewModel.showUnauthorizedMessage &&
                     labelsActions.selectedArticleID == null &&
                     drawerState.isClosed,
@@ -496,6 +526,25 @@ fun ArticleScreen(
             currentArticleId = article?.id,
             listState = listState,
             onSelectArticle = ::selectListArticle,
+            onToggleRead = { target ->
+                if (target.read) {
+                    articleActions.markUnread(target.id)
+                } else {
+                    articleActions.markRead(target.id)
+                }
+            },
+            onToggleStar = { target ->
+                if (target.starred) {
+                    articleActions.unstar(target.id)
+                } else {
+                    articleActions.star(target.id)
+                }
+            },
+            onOpenInBrowser = { url ->
+                linkOpener.open(url.toUri())
+            },
+            onRefresh = { refreshFeeds() },
+            onFocusSearch = { search.start() },
         )
 
         ArticleScaffold(
@@ -749,6 +798,14 @@ fun ArticleScreen(
                 },
                 onDismissRequest = {
                     setUpdatePasswordDialogOpen(false)
+                }
+            )
+        }
+
+        if (isShortcutsDialogOpen) {
+            KeyboardShortcutsDialog(
+                onDismissRequest = {
+                    isShortcutsDialogOpen = false
                 }
             )
         }
