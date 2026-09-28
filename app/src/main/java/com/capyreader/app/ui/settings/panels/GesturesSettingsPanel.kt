@@ -26,6 +26,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun GesturesSettingPanel(
     viewModel: GesturesSettingsViewModel = koinViewModel(),
+    onNavigateToKeyboardShortcuts: () -> Unit = {},
 ) {
     GesturesSettingsPanelView(
         updateBackAction = viewModel::updateBackAction,
@@ -39,8 +40,6 @@ fun GesturesSettingPanel(
         enableHorizontalPagination = viewModel.enableHorizontalPagination,
         updateVolumeKeyNavigation = viewModel::updateVolumeKeyNavigation,
         enableVolumeKeyNavigation = viewModel.enableVolumeKeyNavigation,
-        updateKeyboardNavigation = viewModel::updateKeyboardNavigation,
-        enableKeyboardNavigation = viewModel.enableKeyboardNavigation,
         backAction = viewModel.backAction,
         bottomSwipe = viewModel.readerBottomSwipe,
         enablePagingTapGesture = viewModel.enablePagingTapGesture,
@@ -50,6 +49,7 @@ fun GesturesSettingPanel(
         topSwipe = viewModel.readerTopSwipe,
         updateImproveTalkback = viewModel::updateImproveTalkback,
         improveTalkback = viewModel.improveTalkback,
+        onNavigateToKeyboardShortcuts = onNavigateToKeyboardShortcuts,
     )
 }
 
@@ -66,8 +66,6 @@ private fun GesturesSettingsPanelView(
     enableHorizontalPagination: Boolean,
     updateVolumeKeyNavigation: (enabled: Boolean) -> Unit,
     enableVolumeKeyNavigation: Boolean,
-    updateKeyboardNavigation: (enabled: Boolean) -> Unit,
-    enableKeyboardNavigation: Boolean,
     backAction: BackAction,
     bottomSwipe: ArticleVerticalSwipe,
     enablePagingTapGesture: Boolean,
@@ -76,7 +74,8 @@ private fun GesturesSettingsPanelView(
     listSwipeBottom: ArticleListVerticalSwipe,
     topSwipe: ArticleVerticalSwipe,
     updateImproveTalkback: (improve: Boolean) -> Unit,
-    improveTalkback: Boolean
+    improveTalkback: Boolean,
+    onNavigateToKeyboardShortcuts: () -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -142,14 +141,10 @@ private fun GesturesSettingsPanelView(
                     )
                 }
 
-                RowItem {
-                    TextSwitch(
-                        onCheckedChange = updateKeyboardNavigation,
-                        checked = enableKeyboardNavigation,
-                        title = stringResource(R.string.settings_gestures_reader_keyboard_navigation_title),
-                        subtitle = stringResource(R.string.settings_gestures_reader_keyboard_navigation_subtitle)
-                    )
-                }
+                SettingsDisclosureRow(
+                    title = stringResource(R.string.settings_panel_keyboard_shortcuts_title),
+                    onClick = onNavigateToKeyboardShortcuts,
+                )
             }
         }
 
@@ -217,8 +212,6 @@ fun GesturesSettingsPanelPreview() {
             enableHorizontalPagination = true,
             enableVolumeKeyNavigation = false,
             updateVolumeKeyNavigation = {},
-            enableKeyboardNavigation = false,
-            updateKeyboardNavigation = {},
             listSwipeBottom = ArticleListVerticalSwipe.NEXT_FEED,
             improveTalkback = true,
             updateImproveTalkback = {},

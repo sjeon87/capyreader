@@ -73,8 +73,6 @@ fun ArticleView(
 ) {
     val enableHorizontalPager by appPreferences.readerOptions.enableHorizontaPagination.collectChangesWithDefault()
     val enableVolumeKeyNavigation by appPreferences.readerOptions.enableVolumeKeyNavigation.collectChangesWithDefault()
-    val enableKeyboardNavigation by appPreferences.readerOptions.enableKeyboardNavigation.collectChangesWithDefault()
-    val hardwareNavigationEnabled = enableVolumeKeyNavigation || enableKeyboardNavigation
     val fullContent = LocalFullContent.current
     val openLink = articleOpenLink(article)
 
@@ -123,17 +121,15 @@ fun ArticleView(
 
     val volumeKeyOwner = remember { Any() }
 
-    DisposableEffect(volumeKeyOwner, hardwareNavigationEnabled) {
-        if (hardwareNavigationEnabled) {
-            navigationBridge.register(
-                volumeKeyOwner,
-                ArticleNavigationBridge.Callbacks(
-                    onSelectPreviousArticle = { currentSelectPrevious.value() },
-                    onSelectNextArticle = { currentSelectNext.value() },
-                    handlesVolumeKeys = enableVolumeKeyNavigation,
-                )
-            )
-        }
+    DisposableEffect(volumeKeyOwner, enableVolumeKeyNavigation) {
+        navigationBridge.register(
+            volumeKeyOwner,
+            ArticleNavigationBridge.Callbacks(
+                onSelectPreviousArticle = { currentSelectPrevious.value() },
+                onSelectNextArticle = { currentSelectNext.value() },
+                handlesVolumeKeys = enableVolumeKeyNavigation,
+            ),
+        )
 
         onDispose {
             navigationBridge.unregister(volumeKeyOwner)

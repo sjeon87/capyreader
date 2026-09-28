@@ -7,9 +7,8 @@ package com.capyreader.app
  * Each surface (reader, article list) registers its navigation callbacks
  * under a unique owner token for the lifetime of its composition and removes
  * exactly its own entry on disposal, so overlapping compositions can't clear
- * each other's registrations. When nothing is registered (or the navigation
- * option is disabled), all callbacks are null and the keys fall through to
- * the system's default behavior.
+ * each other's registrations. When nothing is registered, all callbacks are
+ * null and the keys fall through to the system's default behavior.
  *
  * Volume keys only route to registrations with [Callbacks.handlesVolumeKeys]
  * set, so the article list can offer J/K navigation without hijacking the
