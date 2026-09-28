@@ -64,9 +64,8 @@ class MainActivity : BaseActivity() {
 
     /**
      * Route volume up/down to article navigation when a reader has registered
-     * callbacks (which only happens while volume key navigation is enabled and
-     * the reader is on screen). Returning true consumes the event so the
-     * system doesn't adjust the media volume.
+     * callbacks with volume key support. Returning true consumes the event so
+     * the system doesn't adjust the media volume.
      */
     private fun handleVolumeKeyEvent(keyCode: Int): Boolean {
         val callback = volumeKeyCallback(keyCode) ?: return false
@@ -90,10 +89,9 @@ class MainActivity : BaseActivity() {
 
     /**
      * Route J/K presses from bluetooth keyboards to article navigation when an
-     * article surface (list or reader) has registered callbacks while keyboard
-     * navigation is enabled. Unlike the system keys handled in onKeyDown, J/K
-     * carry no default OS behavior, so they are consumed on key-up where
-     * Compose focus handling is settled.
+     * article surface (list or reader) has registered callbacks. Unlike the
+     * system keys handled in onKeyDown, J/K carry no default OS behavior, so
+     * they are consumed on key-up where Compose focus handling is settled.
      */
     private fun handleKeyboardNavigation(keyCode: Int, event: KeyEvent?): Boolean {
         if (event?.isCtrlPressed == true || event?.isAltPressed == true || event?.isMetaPressed == true) {

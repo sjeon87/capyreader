@@ -19,7 +19,7 @@ import org.koin.compose.koinInject
  * a drawer, dialog, sheet, or media viewer is open.
  *
  * Volume keys are never consumed here ([handlesVolumeKeys] is false), so
- * enabling keyboard navigation alone can't hijack the system volume.
+ * this registration can't hijack the system volume.
  */
 @Composable
 fun ArticleListKeyboardNavigation(

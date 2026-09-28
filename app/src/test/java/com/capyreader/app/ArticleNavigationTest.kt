@@ -2,13 +2,11 @@ package com.capyreader.app
 
 import android.content.Context
 import com.capyreader.app.preferences.AppPreferences
-import com.capyreader.app.ui.settings.panels.GesturesSettingsViewModel
 import com.capyreader.app.ui.articles.initialArticleIndex
 import com.capyreader.app.ui.articles.neighborArticleIndex
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -108,27 +106,6 @@ class ArticleNavigationTest {
     @Test
     fun `volume key navigation defaults to disabled`() {
         assertFalse(appPreferences.readerOptions.enableVolumeKeyNavigation.get())
-    }
-
-    @Test
-    fun `keyboard navigation defaults to disabled`() {
-        assertFalse(appPreferences.readerOptions.enableKeyboardNavigation.get())
-    }
-
-    @Test
-    fun `settings view model persists keyboard navigation toggle`() {
-        val viewModel = GesturesSettingsViewModel(appPreferences)
-        assertFalse(viewModel.enableKeyboardNavigation)
-
-        viewModel.updateKeyboardNavigation(true)
-
-        assertTrue(viewModel.enableKeyboardNavigation)
-        assertTrue(appPreferences.readerOptions.enableKeyboardNavigation.get())
-
-        viewModel.updateKeyboardNavigation(false)
-
-        assertFalse(viewModel.enableKeyboardNavigation)
-        assertFalse(appPreferences.readerOptions.enableKeyboardNavigation.get())
     }
 
     @Test

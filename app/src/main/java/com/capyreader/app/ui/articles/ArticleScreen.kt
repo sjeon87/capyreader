@@ -342,8 +342,6 @@ fun ArticleScreen(
             }
         }
 
-        val enableKeyboardNavigation by appPreferences.readerOptions.enableKeyboardNavigation.collectChangesWithDefault()
-
         // J/K list navigation is registered below, after selectArticle is declared.
 
         fun refreshAll() {
@@ -486,8 +484,7 @@ fun ArticleScreen(
         // J/K opens articles from the list, but only while no reader, search,
         // media viewer, dialog, or drawer could consume the keystroke instead.
         ArticleListKeyboardNavigation(
-            enabled = enableKeyboardNavigation &&
-                    article == null &&
+            enabled = article == null &&
                     !search.isActive &&
                     media == null &&
                     !isMarkAllReadDialogOpen &&
