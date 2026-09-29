@@ -110,6 +110,20 @@ class MainActivity : BaseActivity() {
             return true
         }
 
+        if (event?.isShiftPressed == true) {
+            val callback = when (keyCode) {
+                KeyEvent.KEYCODE_1 -> navigationBridge.onShowUnread
+                KeyEvent.KEYCODE_2 -> navigationBridge.onShowAll
+                KeyEvent.KEYCODE_3 -> navigationBridge.onShowStarred
+                else -> null
+            }
+
+            if (callback != null) {
+                callback.invoke()
+                return true
+            }
+        }
+
         val callback = when (keyCode) {
             KeyEvent.KEYCODE_J -> navigationBridge.onSelectNextArticle
             KeyEvent.KEYCODE_K -> navigationBridge.onSelectPreviousArticle

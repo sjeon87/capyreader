@@ -67,6 +67,15 @@ class ArticleNavigationBridge internal constructor() {
     val onFocusSearch: (() -> Unit)?
         get() = findLatestCallback { it.onFocusSearch }
 
+    val onShowUnread: (() -> Unit)?
+        get() = findLatestCallback { it.onShowUnread }
+
+    val onShowAll: (() -> Unit)?
+        get() = findLatestCallback { it.onShowAll }
+
+    val onShowStarred: (() -> Unit)?
+        get() = findLatestCallback { it.onShowStarred }
+
     val onShowHelp: (() -> Unit)?
         get() = findLatestCallback { it.onShowHelp }
 
@@ -99,6 +108,9 @@ class ArticleNavigationBridge internal constructor() {
         val onPageUp: (() -> Unit)? = null,
         val onRefresh: (() -> Unit)? = null,
         val onFocusSearch: (() -> Unit)? = null,
+        val onShowUnread: (() -> Unit)? = null,
+        val onShowAll: (() -> Unit)? = null,
+        val onShowStarred: (() -> Unit)? = null,
         val onShowHelp: (() -> Unit)? = null,
         val handlesVolumeKeys: Boolean = true,
     )

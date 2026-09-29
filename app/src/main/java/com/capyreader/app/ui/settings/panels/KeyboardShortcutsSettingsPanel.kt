@@ -98,6 +98,21 @@ fun KeyboardShortcutsList(
                     context = stringResource(R.string.settings_keybinding_context_list),
                 )
                 KeybindingRow(
+                    keys = "Shift + 1",
+                    description = stringResource(R.string.filter_unread),
+                    context = stringResource(R.string.settings_keybinding_context_list),
+                )
+                KeybindingRow(
+                    keys = "Shift + 2",
+                    description = stringResource(R.string.filter_all),
+                    context = stringResource(R.string.settings_keybinding_context_list),
+                )
+                KeybindingRow(
+                    keys = "Shift + 3",
+                    description = stringResource(R.string.filter_starred),
+                    context = stringResource(R.string.settings_keybinding_context_list),
+                )
+                KeybindingRow(
                     keys = stringResource(R.string.settings_keybinding_help_key),
                     description = stringResource(R.string.settings_keybinding_help),
                     context = stringResource(R.string.settings_keybinding_context_global),

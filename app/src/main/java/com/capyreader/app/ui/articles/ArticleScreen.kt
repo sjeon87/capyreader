@@ -494,6 +494,9 @@ fun ArticleScreen(
                 !viewModel.showUnauthorizedMessage &&
                 labelsActions.selectedArticleID == null
         val currentOpenHelp = rememberUpdatedState { isShortcutsDialogOpen = true }
+        val currentShowUnread = rememberUpdatedState { selectStatus(ArticleStatus.UNREAD) }
+        val currentShowAll = rememberUpdatedState { selectStatus(ArticleStatus.ALL) }
+        val currentShowStarred = rememberUpdatedState { selectStatus(ArticleStatus.STARRED) }
         val shortcutsOwner = remember { Any() }
 
         DisposableEffect(shortcutsOwner, helpEnabled) {
@@ -502,6 +505,9 @@ fun ArticleScreen(
                     shortcutsOwner,
                     ArticleNavigationBridge.Callbacks(
                         onShowHelp = { currentOpenHelp.value() },
+                        onShowUnread = { currentShowUnread.value() },
+                        onShowAll = { currentShowAll.value() },
+                        onShowStarred = { currentShowStarred.value() },
                         handlesVolumeKeys = false,
                     ),
                 )
