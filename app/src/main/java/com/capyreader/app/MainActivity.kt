@@ -21,6 +21,14 @@ class MainActivity : BaseActivity() {
 
     private var pendingArticleID by mutableStateOf<String?>(null)
 
+    /**
+     * Key code of the last Shift shortcut fired from [onKeyDown], awaiting
+     * its key-up. Consuming that key-up (instead of re-firing) keeps
+     * Shift+Space from falling through to page-down and filters from
+     * firing twice, regardless of the order Shift and the key are released.
+     */
+    private var pendingShiftKeyCode: Int? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingArticleID = NotificationHelper.openFromIntent(intent, appPreferences = appPreferences)
@@ -45,6 +53,11 @@ class MainActivity : BaseActivity() {
             return true
         }
 
+        if (handleShiftShortcut(keyCode, event)) {
+            pendingShiftKeyCode = keyCode
+            return true
+        }
+
         return super.onKeyDown(keyCode, event)
     }
 
@@ -52,6 +65,11 @@ class MainActivity : BaseActivity() {
         // Consume the matching event so the system doesn't adjust volume,
         // but don't fire navigation a second time for the same press.
         if (consumesVolumeKeyEvent(keyCode)) {
+            return true
+        }
+
+        if (pendingShiftKeyCode != null && pendingShiftKeyCode == keyCode) {
+            pendingShiftKeyCode = null
             return true
         }
 
@@ -88,9 +106,42 @@ class MainActivity : BaseActivity() {
     }
 
     /**
+     * Fire Shift-modified shortcuts on key-down, where Shift is guaranteed
+     * to still be held. Reading isShiftPressed on key-up misses presses
+     * where Shift is released first.
+     */
+    private fun handleShiftShortcut(keyCode: Int, event: KeyEvent?): Boolean {
+        if (event?.isCtrlPressed == true || event?.isAltPressed == true || event?.isMetaPressed == true) {
+            return false
+        }
+
+        if (event?.isShiftPressed != true) {
+            return false
+        }
+
+        val callback = when (keyCode) {
+            KeyEvent.KEYCODE_SPACE -> navigationBridge.onPageUp
+            KeyEvent.KEYCODE_1 -> navigationBridge.onShowUnread
+            KeyEvent.KEYCODE_2 -> navigationBridge.onShowAll
+            KeyEvent.KEYCODE_3 -> navigationBridge.onShowStarred
+            else -> null
+        } ?: return false
+
+        // Swallow key auto-repeat; the action already fired on first press.
+        if (event?.repeatCount != 0) {
+            return true
+        }
+
+        callback.invoke()
+
+        return true
+    }
+
+    /**
      * Route hardware keyboard shortcuts to article navigation and actions when
-     * an article surface has registered callbacks. Key events are consumed on
-     * key-up where Compose focus handling is settled.
+     * an article surface has registered callbacks. Shift-modified shortcuts
+     * fire on key-down (see [handleShiftShortcut]); everything else is
+     * consumed on key-up where Compose focus handling is settled.
      */
     private fun handleKeyboardNavigation(keyCode: Int, event: KeyEvent?): Boolean {
         if (event?.isCtrlPressed == true || event?.isAltPressed == true || event?.isMetaPressed == true) {
@@ -101,27 +152,6 @@ class MainActivity : BaseActivity() {
             val callback = navigationBridge.onShowHelp ?: return false
             callback.invoke()
             return true
-        }
-
-        if (event?.isShiftPressed == true && keyCode == KeyEvent.KEYCODE_SPACE) {
-            val callback = navigationBridge.onPageUp ?: return false
-
-            callback.invoke()
-            return true
-        }
-
-        if (event?.isShiftPressed == true) {
-            val callback = when (keyCode) {
-                KeyEvent.KEYCODE_1 -> navigationBridge.onShowUnread
-                KeyEvent.KEYCODE_2 -> navigationBridge.onShowAll
-                KeyEvent.KEYCODE_3 -> navigationBridge.onShowStarred
-                else -> null
-            }
-
-            if (callback != null) {
-                callback.invoke()
-                return true
-            }
         }
 
         val callback = when (keyCode) {
@@ -136,7 +166,9 @@ class MainActivity : BaseActivity() {
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_O -> navigationBridge.onOpenArticle
             KeyEvent.KEYCODE_ESCAPE -> navigationBridge.onBack
-            KeyEvent.KEYCODE_SPACE -> navigationBridge.onPageDown
+            // Shift+Space fires on key-down; a shifted key-up reaching here
+            // (overlapping chords) must not fall through to page-down.
+            KeyEvent.KEYCODE_SPACE -> navigationBridge.onPageDown.takeUnless { event?.isShiftPressed == true }
             KeyEvent.KEYCODE_R -> navigationBridge.onRefresh
             KeyEvent.KEYCODE_SLASH -> navigationBridge.onFocusSearch
             else -> null
